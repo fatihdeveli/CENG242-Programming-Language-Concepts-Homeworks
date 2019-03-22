@@ -36,7 +36,10 @@ getVarValue (_, t, val)
 -- Get the type of the variable from the given mapping tuple
 getVarType (_, t, _) = t
 
-evaluateAST _ = (EmptyAST, "")
+
+--evaluateAST (ast, mapping) = (substitutedAST, (getStrOfAST (evaluate substitutedAST))) where substitutedAST = substitute (ast, mapping)
+evaluateAST (ast, mapping) = (substitutedAST, (evaluate substitutedAST)) where substitutedAST = substitute (ast, mapping)
+
 
 -- Substitute the variables in the expression with corresponding ASTNode with variable value
 substitute :: (AST, Mapping) -> AST
@@ -45,7 +48,6 @@ substitute (EmptyAST, mapping) = EmptyAST
 substitute (ASTNode str ast1 ast2, mapping)
     | isVariable str mapping = ASTNode (getTypeOfVar str mapping) (ASTNode (getValueOfVar str mapping) EmptyAST EmptyAST) EmptyAST
     | otherwise = ASTNode str (substitute (ast1, mapping)) (substitute (ast2, mapping))
-
 
 
 -- Get the value of a given variable name
@@ -62,8 +64,24 @@ isVariable :: String -> Mapping -> Bool
 isVariable _ [] = False
 isVariable str (x:xs) = str == getVarName x || isVariable str xs
 
-{-
+--(ASTNode "plus" (ASTNode "num" (ASTNode "3" EmptyAST EmptyAST) EmptyAST) (ASTNode "negate" (ASTNode "num" (ASTNode "5" EmptyAST EmptyAST) EmptyAST) EmptyAST))
 
+
+evaluate :: AST -> String
+evaluate (ASTNode "num" (ASTNode val _ _) _) = show val
+evaluate (ASTNode "str" (ASTNode val _ _) _) = val
+evaluate (ASTNode "plus" ast1 ast2) = show ((read (evaluate ast1)::Int) + (read (evaluate ast2)::Int))
+evaluate (ASTNode "times" ast1 ast2) = show ((read (evaluate ast1)::Int) * (read (evaluate ast2)::Int))
+evaluate (ASTNode "negate" ast _) = "-" ++ evaluate ast
+evaluate (ASTNode "cat" ast1 ast2) = (evaluate ast1) ++ (evaluate ast2)
+evaluate (ASTNode "len" ast _) = show (length (evaluate ast))
+
+
+
+
+
+
+{-
 ---- TEST CASES ----
 
 -- writeExpression --
