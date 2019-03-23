@@ -9,77 +9,53 @@ evaluateAST :: (AST, Mapping) -> (AST, String)
 -- IMPLEMENT writeExpression and evaluateAST FUNCTION ACCORDING TO GIVEN SIGNATURES -- 
 
 writeExpression (EmptyAST, _) = ""
-writeExpression (ast, (x:xs)) = helper ast (x:xs) True
+writeExpression (ast, (x:xs)) = "let " ++ helper ast (x:xs) ++ " in " ++ writeExpression (ast, [])
 writeExpression (ASTNode "num" (ASTNode number _ _) _, []) = number
-writeExpression (ASTNode "str" (ASTNode string _ _) _, []) = "\"" ++ string ++ "\""
+writeExpression (ASTNode "str" (ASTNode string _ _) _, []) = show string
 writeExpression (ASTNode "plus" exp1 exp2, []) = "(" ++ writeExpression (exp1, []) ++ "+" ++ writeExpression (exp2, []) ++ ")"
 writeExpression (ASTNode "times" exp1 exp2, []) = "(" ++ writeExpression (exp1, []) ++ "*" ++ writeExpression (exp2, []) ++ ")"
 writeExpression (ASTNode "negate" exp1 _, []) = "(" ++ "-" ++ writeExpression (exp1, []) ++ ")"
-writeExpression (ASTNode "len" exp1 _, []) = "(length" ++ writeExpression(exp1, []) ++ ")"
+writeExpression (ASTNode "len" exp1 _, []) = "(length " ++ writeExpression(exp1, []) ++ ")"
 writeExpression (ASTNode "cat" exp1 exp2, []) = "(" ++ writeExpression (exp1, []) ++ "++" ++ writeExpression (exp2, []) ++ ")"
 writeExpression (ASTNode variable _ _, []) = variable
 
-helper :: AST -> Mapping -> Bool -> String
-helper ast (x:xs) True = "let " ++ getVarName x ++ "=" ++ getVarValue x ++ helper ast xs False ++ " in " ++ writeExpression (ast, [])
-helper ast (x:xs) False = ";" ++ getVarName x ++ "=" ++ getVarValue x ++ helper ast xs False
-helper _ [] False = ""
+-- Helper deals with the variables in the expression
+helper :: AST -> Mapping -> String
+helper ast [(name, typ, val)] = name ++ "=" ++ (if typ == "str" then show (val) else val) -- Only one element in mapping, no ';' at the end
+helper ast ((name, typ, val):xs) = name ++ "=" ++ (if typ == "str" then show (val) else val) ++ ";" ++ helper ast xs -- more than 2 elements
 
-
--- Get the name of the variable from the given mapping tuple
-getVarName (name, _, _) = name
-
--- Get the value of the variable from the given mapping tuple
-getVarValue (_, t, val)
-    | t == "str" = "\"" ++ val ++ "\""
-    | t == "num" = val
-
--- Get the type of the variable from the given mapping tuple
-getVarType (_, t, _) = t
-
-
---evaluateAST (ast, mapping) = (substitutedAST, (getStrOfAST (evaluate substitutedAST))) where substitutedAST = substitute (ast, mapping)
+evaluateAST (ast, []) = (ast, (evaluate ast))
 evaluateAST (ast, mapping) = (substitutedAST, (evaluate substitutedAST)) where substitutedAST = substitute (ast, mapping)
-
 
 -- Substitute the variables in the expression with corresponding ASTNode with variable value
 substitute :: (AST, Mapping) -> AST
-substitute (ast, []) = ast
 substitute (EmptyAST, mapping) = EmptyAST
 substitute (ASTNode str ast1 ast2, mapping)
-    | isVariable str mapping = ASTNode (getTypeOfVar str mapping) (ASTNode (getValueOfVar str mapping) EmptyAST EmptyAST) EmptyAST
+    | isVariable str mapping = ASTNode (typeOfVarName str mapping) (ASTNode (valueOfVarName str mapping) EmptyAST EmptyAST) EmptyAST
     | otherwise = ASTNode str (substitute (ast1, mapping)) (substitute (ast2, mapping))
 
+-- Get the value of a given variable name in the mapping list
+valueOfVarName :: String -> Mapping -> String
+valueOfVarName str [] = str
+valueOfVarName str ((name, _, val):xs) = if str == name then val else valueOfVarName str xs
 
--- Get the value of a given variable name
-getValueOfVar :: String -> Mapping -> String
-getValueOfVar str [] = str
-getValueOfVar str (x:xs) = if str == (getVarName x) then getVarValue x else getValueOfVar str xs
-
--- Get the type of a given variable name
-getTypeOfVar :: String -> Mapping -> String
-getTypeOfVar str (x:xs) = if str == (getVarName x) then getVarType x else getTypeOfVar str xs
+-- Get the type of a given variable name in the mapping list
+typeOfVarName :: String -> Mapping -> String
+typeOfVarName str ((name, typ, _):xs) = if str == name then typ else typeOfVarName str xs
 
 -- Check if given string is a variable name in the mappings list
 isVariable :: String -> Mapping -> Bool
 isVariable _ [] = False
-isVariable str (x:xs) = str == getVarName x || isVariable str xs
-
---(ASTNode "plus" (ASTNode "num" (ASTNode "3" EmptyAST EmptyAST) EmptyAST) (ASTNode "negate" (ASTNode "num" (ASTNode "5" EmptyAST EmptyAST) EmptyAST) EmptyAST))
-
+isVariable str ((name, _, _):xs) = str == name || isVariable str xs
 
 evaluate :: AST -> String
-evaluate (ASTNode "num" (ASTNode val _ _) _) = show val
+evaluate (ASTNode "num" (ASTNode val _ _) _) = val
 evaluate (ASTNode "str" (ASTNode val _ _) _) = val
 evaluate (ASTNode "plus" ast1 ast2) = show ((read (evaluate ast1)::Int) + (read (evaluate ast2)::Int))
 evaluate (ASTNode "times" ast1 ast2) = show ((read (evaluate ast1)::Int) * (read (evaluate ast2)::Int))
 evaluate (ASTNode "negate" ast _) = "-" ++ evaluate ast
 evaluate (ASTNode "cat" ast1 ast2) = (evaluate ast1) ++ (evaluate ast2)
 evaluate (ASTNode "len" ast _) = show (length (evaluate ast))
-
-
-
-
-
 
 {-
 ---- TEST CASES ----
