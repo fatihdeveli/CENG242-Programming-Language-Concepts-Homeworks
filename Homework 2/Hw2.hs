@@ -34,30 +34,61 @@ eagerHelper (ASTNode (ASTLetDatum var) ast1 ast2) evaluatedVars = ASTJust (resul
         else getSteps (eagerHelper ast1 evaluatedVars) + 
             getSteps (eagerHelper ast2 (replaceBinding (var, (getValue (eagerHelper ast1 evaluatedVars))) evaluatedVars))
 
-eagerHelper (ASTNode (ASTSimpleDatum "num") (ASTNode (ASTSimpleDatum val) _ _) _) _ = (ASTJust (val, "num", 0))
+eagerHelper (ASTNode (ASTSimpleDatum "num") (ASTNode (ASTSimpleDatum val) _ _) _) _ = 
+    if isNumber val then (ASTJust (val, "num", 0)) else ASTError ("the value '" ++ val ++ "' is not a number!")
 eagerHelper (ASTNode (ASTSimpleDatum "str") (ASTNode (ASTSimpleDatum val) _ _) _) _ = ASTJust (val, "str", 0)
 eagerHelper (ASTNode (ASTSimpleDatum "negate") ast _) evaluatedVars = ASTJust (result, "num", calcSteps) where
     result = "-" ++ getValue (eagerHelper ast evaluatedVars)
     calcSteps = getSteps (eagerHelper ast evaluatedVars) + 1
+
+-- Erroneous cases with plus operation
+eagerHelper (ASTNode (ASTSimpleDatum "plus") (ASTNode (ASTSimpleDatum "str") _ _) (ASTNode (ASTSimpleDatum op) _ _)) _
+    = ASTError ("plus operation is not defined between str and " ++ op ++ "!")
+eagerHelper (ASTNode (ASTSimpleDatum "plus") (ASTNode (ASTSimpleDatum op) _ _) (ASTNode (ASTSimpleDatum "str") _ _)) _
+    = ASTError ("plus operation is not defined between " ++ op ++ " and str!")
+
+-- Valid plus operation
 eagerHelper (ASTNode (ASTSimpleDatum "plus") ast1 ast2) evaluatedVars = ASTJust (result, "num", calcSteps) where
     result = show (operand1 + operand2) where
         operand1 = read (getValue (eagerHelper ast1 evaluatedVars))::Int
         operand2 = read (getValue (eagerHelper ast2 evaluatedVars))::Int
     calcSteps = getSteps (eagerHelper ast1 evaluatedVars) + getSteps (eagerHelper ast2 evaluatedVars) + 1
 
+-- Erroneous cases with times operation
+eagerHelper (ASTNode (ASTSimpleDatum "times") (ASTNode (ASTSimpleDatum "str") _ _) (ASTNode (ASTSimpleDatum op) _ _)) _
+    = ASTError ("times operation is not defined between str and " ++ op ++ "!")
+eagerHelper (ASTNode (ASTSimpleDatum "times") (ASTNode (ASTSimpleDatum op) _ _) (ASTNode (ASTSimpleDatum "str") _ _)) _
+    = ASTError ("times operation is not defined between " ++ op ++ " and str!")
+
+-- Valid times operation
 eagerHelper (ASTNode (ASTSimpleDatum "times") ast1 ast2) evaluatedVars = ASTJust (result, "num", calcSteps) where
     result = show (operand1 * operand2) where
         operand1 = read (getValue (eagerHelper ast1 evaluatedVars))::Int
         operand2 = read (getValue (eagerHelper ast2 evaluatedVars))::Int
     calcSteps = getSteps (eagerHelper ast1 evaluatedVars) + getSteps (eagerHelper ast2 evaluatedVars) + 1
+
+-- Erroneous cases with cat operation
+eagerHelper (ASTNode (ASTSimpleDatum "cat") (ASTNode (ASTSimpleDatum "num") _ _) (ASTNode (ASTSimpleDatum op) _ _)) _
+    = ASTError ("cat operation is not defined between num and " ++ op ++ "!")
+eagerHelper (ASTNode (ASTSimpleDatum "cat") (ASTNode (ASTSimpleDatum op) _ _) (ASTNode (ASTSimpleDatum "num") _ _)) _
+    = ASTError ("cat operation is not defined between " ++ op ++ " and num!")
+
+-- Valid cat operation
 eagerHelper (ASTNode (ASTSimpleDatum "cat") ast1 ast2) evaluatedVars = ASTJust (result, "str", calcSteps) where
     result = operand1 ++ operand2 where
         operand1 = getValue (eagerHelper ast1 evaluatedVars)
         operand2 = getValue (eagerHelper ast2 evaluatedVars)
     calcSteps = getSteps (eagerHelper ast1 evaluatedVars) + getSteps (eagerHelper ast2 evaluatedVars) + 1
+
+-- Erroneous cases with len operation
+eagerHelper (ASTNode (ASTSimpleDatum "len") (ASTNode (ASTSimpleDatum "num") _ _) _) _ 
+    = ASTError "len operation is not defined on num!"
+
+-- Valid len operation
 eagerHelper (ASTNode (ASTSimpleDatum "len") ast _) evaluatedVars = ASTJust (result, "num", calcSteps) where
     result = show (length (getValue (eagerHelper ast evaluatedVars)))
     calcSteps = getSteps (eagerHelper ast evaluatedVars) + 1
+
 eagerHelper (ASTNode (ASTSimpleDatum var) EmptyAST EmptyAST) evaluatedVars
     = ASTJust (result, typ, 0) where
         result = getBinding var evaluatedVars
@@ -81,8 +112,19 @@ replaceBinding newBinding (x:xs) = if fst x == fst newBinding
 {-
 -- TEST CASES --
 
-eagerEvaluation (ASTNode (ASTLetDatum "x") (ASTNode (ASTSimpleDatum "plus") (ASTNode (ASTSimpleDatum "num") (ASTNode (ASTSimpleDatum "3") EmptyAST EmptyAST) EmptyAST) (ASTNode (ASTSimpleDatum "num") (ASTNode (ASTSimpleDatum "5") EmptyAST EmptyAST) EmptyAST)) (ASTNode (ASTLetDatum "x") (ASTNode (ASTSimpleDatum "num") (ASTNode (ASTSimpleDatum "7") EmptyAST EmptyAST) EmptyAST) (ASTNode (ASTSimpleDatum "plus") (ASTNode (ASTSimpleDatum "x") EmptyAST EmptyAST) (ASTNode (ASTSimpleDatum "x") EmptyAST EmptyAST))))
+*Hw2> eagerEvaluation 
 
+(ASTNode 
+    (ASTSimpleDatum "plus") 
+    (ASTNode (ASTSimpleDatum "num") (ASTNode (ASTSimpleDatum "abc") EmptyAST EmptyAST) EmptyAST) 
+    (ASTNode (ASTSimpleDatum "num") (ASTNode (ASTSimpleDatum "123") EmptyAST EmptyAST) EmptyAST))
+
+ASTError "the value 'abc' is not a number!"
+
+
+
+
+eagerEvaluation (ASTNode (ASTLetDatum "x") (ASTNode (ASTSimpleDatum "plus") (ASTNode (ASTSimpleDatum "num") (ASTNode (ASTSimpleDatum "3") EmptyAST EmptyAST) EmptyAST) (ASTNode (ASTSimpleDatum "num") (ASTNode (ASTSimpleDatum "5") EmptyAST EmptyAST) EmptyAST)) (ASTNode (ASTLetDatum "x") (ASTNode (ASTSimpleDatum "num") (ASTNode (ASTSimpleDatum "7") EmptyAST EmptyAST) EmptyAST) (ASTNode (ASTSimpleDatum "plus") (ASTNode (ASTSimpleDatum "x") EmptyAST EmptyAST) (ASTNode (ASTSimpleDatum "x") EmptyAST EmptyAST))))
 
 (ASTNode 
 	(ASTLetDatum "x") 
