@@ -5,3 +5,4 @@
 ## Homework 2 (Haskell)
 - Evaluating a given abstract syntax tree with eager evaluation or normal-order evaluation by calculating the result, type, and number of steps required for the calculation with desired evaluation technique.
 - Errors with defined operations are handled.
+- Tester obtained from https://github.com/chaorrupted/ceng242-hw2-tester
