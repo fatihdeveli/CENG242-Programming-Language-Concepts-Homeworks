@@ -80,7 +80,7 @@ public:
      *
      * True if total laptime of this Car is greater than the rhs Car.
      *
-     * Important: 
+     * Important:
      *
      * @param rhs The Car to compare.
      * @return True if this car's total laptime is greater, false otherwise.

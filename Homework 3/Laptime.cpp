@@ -11,12 +11,10 @@ Laptime::Laptime(int laptime) : laptime(laptime), next(nullptr) {
 Laptime::Laptime(const Laptime &rhs) : laptime(rhs.laptime), next(nullptr) {
 }
 
-Laptime::~Laptime() {
+Laptime::~Laptime() = default;
 
-}
-
-void Laptime::addLaptime(Laptime *next) {
-    next = next;
+void Laptime::addLaptime(Laptime *nextLap) {
+    next = nextLap;
 }
 
 bool Laptime::operator<(const Laptime &rhs) const {
@@ -36,4 +34,12 @@ std::ostream &operator<<(std::ostream &os, const Laptime &laptime) {
     int time = laptime.laptime;
     os << time / 60000 << ":" << (time/1000) % 60 << "." << time % 1000;
     return os;
+}
+
+int Laptime::getLaptime() const {
+    return laptime;
+}
+
+Laptime *Laptime::getNext() const {
+    return next;
 }
