@@ -32,7 +32,11 @@ Laptime &Laptime::operator+(const Laptime &rhs) {
 
 std::ostream &operator<<(std::ostream &os, const Laptime &laptime) {
     int time = laptime.laptime;
-    os << time / 60000 << ":" << (time/1000) % 60 << "." << time % 1000;
+    os << time / 60000 << ":";
+    int seconds = (time/1000) % 60;
+    if (seconds < 10)
+        os << "0";
+    os << seconds << "." << time % 1000;
     return os;
 }
 

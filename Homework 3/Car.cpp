@@ -8,7 +8,7 @@ IN THIS FILE. START YOUR IMPLEMENTATIONS BELOW THIS LINE
 
 Car::Car(std::string driver_name) {
     performance = Utilizer::generatePerformance();
-    driver_name = driver_name;
+    this->driver_name = driver_name;
     head = nullptr;
     next = nullptr;
 }
@@ -96,6 +96,10 @@ void Car::Lap(const Laptime &average_laptime) {
 }
 
 std::ostream &operator<<(std::ostream &os, const Car &car) {
+    std::string name = car.driver_name;
+    name = name.substr(name.find(" ") + 1);
+    os << name;
+
     return os;
 }
 
