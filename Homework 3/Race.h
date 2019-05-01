@@ -13,6 +13,7 @@ private:
 
     // DO NOT MODIFY THE UPPER PART
     // ADD OWN PRIVATE METHODS/PROPERTIES BELOW
+    int numberOfCarsInRace;
 
 public:
     /**

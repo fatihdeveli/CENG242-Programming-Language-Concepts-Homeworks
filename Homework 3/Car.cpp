@@ -8,7 +8,7 @@ IN THIS FILE. START YOUR IMPLEMENTATIONS BELOW THIS LINE
 
 Car::Car(std::string driver_name) {
     performance = Utilizer::generatePerformance();
-    driver_name = driver_name;
+    this->driver_name = driver_name;
     head = nullptr;
     next = nullptr;
 }
@@ -17,12 +17,18 @@ Car::Car(const Car& rhs) {
     driver_name = rhs.driver_name;
     performance = rhs.performance;
 
-    Laptime const *temp = rhs.head;
-    auto *laptime = new Laptime(*rhs.head);
-    while ((temp = temp->getNext())) {
-        laptime->addLaptime(new Laptime(*temp));
+    if (rhs.head) {
+        Laptime const *temp = rhs.head;
+        auto *laptime = new Laptime(*rhs.head);
+        while ((temp = temp->getNext())) {
+            laptime->addLaptime(new Laptime(*temp));
+        }
+        head = laptime;
     }
-    head = laptime;
+    else {
+        head = nullptr;
+    }
+
     next = nullptr;
 }
 
@@ -96,6 +102,48 @@ void Car::Lap(const Laptime &average_laptime) {
 }
 
 std::ostream &operator<<(std::ostream &os, const Car &car) {
+    std::string name = car.driver_name;
+    name = name.substr(name.find(' ') + 1);
+
+    name = name.substr(0, 3); // Get the first 3 letters
+    for (int i = 0; i < 3; i++) { // Capitalize
+        name[i] = toupper(name[i]);
+    }
+
+    os << name << "--";
+
+    Laptime fastest(UINT32_MAX), slowest(0), total(0);
+
+    for (Laptime* temp = car.head; temp; temp = temp->getNext()) {
+        if (*temp < fastest)
+            fastest = *temp;
+        if (*temp > slowest)
+            slowest = *temp;
+        total = total + *temp;
+    }
+
+    os << slowest << "--" << fastest << "--" << total;
+
     return os;
+}
+
+Car *Car::getNext() const {
+    return next;
+}
+
+Laptime *Car::getHead() const {
+    return head;
+}
+
+void Car::setHead(Laptime *head) {
+    Car::head = head;
+}
+
+std::string Car::getName() {
+    return driver_name;
+}
+
+void Car::setPerformance(double performance) {
+    this->performance = performance;
 }
 

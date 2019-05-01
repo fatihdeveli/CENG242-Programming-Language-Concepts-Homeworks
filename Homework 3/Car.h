@@ -17,6 +17,13 @@ private:
     // ADD OWN PRIVATE METHODS/PROPERTIES BELOW
 
 public:
+    std::string getName();
+    void setPerformance(double performance);
+    Car *getNext() const;
+    void setHead(Laptime *head);
+    Laptime *getHead() const;
+
+
     /**
      * Constructor.
      *
