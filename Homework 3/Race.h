@@ -16,6 +16,10 @@ private:
     int numberOfCarsInRace;
 
 public:
+    static void swapCars(Car* car1, Car* car2);
+    void sortCars();
+
+
     /**
      * Constructor.
      *

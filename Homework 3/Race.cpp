@@ -17,17 +17,23 @@ Race::Race(const Race &rhs) : average_laptime(rhs.average_laptime) {
     numberOfCarsInRace = rhs.numberOfCarsInRace;
 
     for (Car* temp = rhs.head; temp; temp = temp->getNext()) {
-        addCartoRace(*temp); // Creates a copy of the given car and adds to the race.
+        // Copy the car without the laps
+        Car* newCar = new Car(temp->getName());
+        newCar->setPerformance(temp->getPerformance());
+
+        addCartoRace(*temp);
     }
 
 }
 
 Race::~Race() {
+    /*
     while(head) {
         auto nextCar = head->getNext();
         delete head;
         head = nextCar;
     }
+    */
 }
 
 std::string Race::getRaceName() const {
@@ -58,16 +64,14 @@ void Race::addCartoRace() {
 }
 
 void Race::addCartoRace(Car &car) {
-    auto *newCar = new Car(car.getName());
-    newCar->setPerformance(car.getPerformance());
     if (head == nullptr) {
-        head = newCar;
+        head = &car;
     }
     else {
         auto temp = head;
         while (temp->getNext())
             temp = temp->getNext();
-        temp->addCar(newCar);
+        temp->addCar(&car);
     }
     numberOfCarsInRace++;
 }
@@ -88,13 +92,13 @@ void Race::goBacktoLap(int lap) {
             }
             tempLap = next;
         }
-
+/*
         while (tempLap) { // Clean up the rest
             Laptime* temp = tempLap;
             tempLap = tempLap->getNext();
             delete temp;
         }
-
+*/
         if (lastElement)
             lastElement->addLaptime(nullptr);
 
@@ -109,11 +113,11 @@ void Race::operator++() {
         temp->Lap(average_laptime);
         temp = temp->getNext();
     }
-    // TODO: sort
+    sortCars();
 }
 
 void Race::operator--() {
-
+    // Delete the last lap of cars, and sort them again.
     // TODO: sort
 
 }
@@ -137,49 +141,80 @@ Car Race::operator[](std::string driver_name) {
 }
 
 Race &Race::operator=(const Race &rhs) {
-    if (this != &rhs) {
-
-
-
-
-    }
     return *this;
 }
 
 std::ostream &operator<<(std::ostream &os, const Race &race) {
     const static int points[10] = {25,18,15,12,10,8,6,4,2,1};
-    Car* temp = race.head;
-    int position = 1;
+    Car* tempCar;
+    int position;
+    int carPositionWithFastestLap = -1;
 
-    while (temp) {
+    // Find the position of the car with fastest lap
+    Laptime fastest(INT32_MAX);
+    position = 1;
+    for (tempCar = race.head; tempCar; tempCar = tempCar->getNext()) {
+        for (Laptime* tempLap = tempCar->getHead(); tempLap; tempLap = tempLap->getNext()) {
+            if (*tempLap < fastest) {
+                fastest = *tempLap;
+                carPositionWithFastestLap = position;
+            }
+        }
+        position++;
+    }
+
+
+    position = 1;
+    for (tempCar = race.head; tempCar; tempCar = tempCar->getNext()) {
         int positionDigits = std::to_string(race.numberOfCarsInRace).size();
         for (int i = 1; i < positionDigits; i++) { // Add leading zeros to position
             if (position < pow(10, i)) {
                 os << "0";
             }
         }
-        os << position << "--" << *temp;
+        os << position << "--" << *tempCar;
 
         if (position <= 10)
             os << "--" << points[position-1];
+        if (position == carPositionWithFastestLap) {
+            os << "--" << 1;
+        }
 
         os << std::endl;
-        temp = temp->getNext();
         position++;
     }
-/*
-    // Find the fastest lap & the position of the car
-    temp = race.head;
-    Laptime fastest(INT32_MAX);
-    std::tuple<Laptime*, int> fastestLap(&fastest, -1);
-    position = 1;
-    while (temp) {
-        if temp->
-
-        temp = temp->getNext();
-        position++;
-    }
-*/
-
     return os;
+}
+
+void Race::swapCars(Car *car1, Car *car2) {
+    std::string tempName = car1->getName();
+    car1->setName(car2->getName());
+    car2->setName(tempName);
+
+    double performance = car1->getPerformance();
+    car1->setPerformance(car2->getPerformance());
+    car2->setPerformance(performance);
+
+    Laptime* laptimes = car1->getHead();
+    car1->setHead(car2->getHead());
+    car2->setHead(laptimes);
+}
+
+void Race::sortCars() {
+    if (head == nullptr)
+        return;
+    bool swapped = true;
+    Car* end = nullptr;
+    while (swapped) {
+        swapped = false;
+        Car* current = head;
+        while (current != end && current->getNext()) {
+            if (current->totalLapTime() > current->getNext()->totalLapTime()) {
+                swapped = true;
+                swapCars(current, current->getNext());
+            }
+            current = current->getNext();
+        }
+        end = current;
+    }
 }

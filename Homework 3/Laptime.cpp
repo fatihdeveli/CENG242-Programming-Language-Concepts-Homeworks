@@ -1,3 +1,5 @@
+#include <iostream>
+#include <zconf.h>
 #include "Laptime.h"
 
 /*
@@ -32,7 +34,12 @@ Laptime &Laptime::operator+(const Laptime &rhs) {
 
 std::ostream &operator<<(std::ostream &os, const Laptime &laptime) {
     int time = laptime.laptime;
-    os << time / 60000 << ":" << (time/1000) % 60 << "." << time % 1000;
+    os << time / 60000 << ":";
+    std::string seconds = std::to_string((time/1000) % 60);
+    seconds = std::string(2-seconds.size(), '0').append(seconds);
+    std:: string milliseconds = std::to_string(time%1000);
+    milliseconds = std::string(3-milliseconds.size(), '0').append(milliseconds);
+    os << seconds << "." << milliseconds;
     return os;
 }
 

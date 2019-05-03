@@ -20,15 +20,15 @@ Car::Car(const Car& rhs) {
     if (rhs.head) {
         Laptime const *temp = rhs.head;
         auto *laptime = new Laptime(*rhs.head);
+        head = laptime;
         while ((temp = temp->getNext())) {
             laptime->addLaptime(new Laptime(*temp));
+            laptime = laptime->getNext();
         }
-        head = laptime;
     }
     else {
         head = nullptr;
     }
-
     next = nullptr;
 }
 
@@ -112,7 +112,7 @@ std::ostream &operator<<(std::ostream &os, const Car &car) {
 
     os << name << "--";
 
-    Laptime fastest(UINT32_MAX), slowest(0), total(0);
+    Laptime fastest(INT32_MAX), slowest(0), total(0);
 
     for (Laptime* temp = car.head; temp; temp = temp->getNext()) {
         if (*temp < fastest)
@@ -145,5 +145,17 @@ std::string Car::getName() {
 
 void Car::setPerformance(double performance) {
     this->performance = performance;
+}
+
+void Car::setName(const std::string& name) {
+    driver_name = name;
+}
+
+unsigned int Car::totalLapTime() {
+    unsigned int total = 0;
+    for (Laptime* i = head; i; i = i->getNext()) {
+        total += i->getLaptime();
+    }
+    return total;
 }
 

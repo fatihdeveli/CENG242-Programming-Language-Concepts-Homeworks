@@ -22,6 +22,9 @@ public:
     Car *getNext() const;
     void setHead(Laptime *head);
     Laptime *getHead() const;
+    void setName(const std::string &driverName);
+
+    unsigned int totalLapTime();
 
 
     /**
