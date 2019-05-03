@@ -13,8 +13,13 @@ private:
 
     // DO NOT MODIFY THE UPPER PART
     // ADD OWN PRIVATE METHODS/PROPERTIES BELOW
+    int numberOfCarsInRace;
 
 public:
+    static void swapCars(Car* car1, Car* car2);
+    void sortCars();
+
+
     /**
      * Constructor.
      *

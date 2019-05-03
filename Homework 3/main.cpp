@@ -58,7 +58,7 @@ int main(void) {
     baku.addCartoRace(ricciardo);
     baku.addCartoRace(raikkonen);
     baku.addCartoRace(giovinazzi);
-    
+
     cout<<"NUMBER OF CARS"<<endl<<endl;
     cout<<baku.getNumberOfCarsinRace()<<endl;
 
@@ -109,6 +109,6 @@ int main(void) {
     cout<<champ<<endl;
 
     cout<<"END OF TEST"<<endl;
-    
+
 
 }
