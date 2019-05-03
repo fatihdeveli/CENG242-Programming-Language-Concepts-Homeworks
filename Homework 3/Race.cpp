@@ -16,24 +16,25 @@ Race::Race(const Race &rhs) : average_laptime(rhs.average_laptime) {
     race_name = rhs.race_name;
     numberOfCarsInRace = rhs.numberOfCarsInRace;
 
+
     for (Car* temp = rhs.head; temp; temp = temp->getNext()) {
         // Copy the car without the laps
         Car* newCar = new Car(temp->getName());
         newCar->setPerformance(temp->getPerformance());
+        newCar->setInternal(temp->isInternal());
 
         addCartoRace(*temp);
     }
-
 }
 
 Race::~Race() {
-    /*
     while(head) {
         auto nextCar = head->getNext();
-        delete head;
+        if (head->isInternal()) {
+            delete head;
+        }
         head = nextCar;
     }
-    */
 }
 
 std::string Race::getRaceName() const {
@@ -49,6 +50,8 @@ void Race::addCartoRace() {
         surname[i] = characters[rand() % (sizeof(characters) - 1)];
     }
     auto *newCar = new Car(name + " " + surname);
+    newCar->setInternal(true); // Car was created internally, let the
+    // destructor know this car should be deleted.
 
     if (head == nullptr) {
         head = newCar;
@@ -148,21 +151,7 @@ std::ostream &operator<<(std::ostream &os, const Race &race) {
     const static int points[10] = {25,18,15,12,10,8,6,4,2,1};
     Car* tempCar;
     int position;
-    int carPositionWithFastestLap = -1;
-
-    // Find the position of the car with fastest lap
-    Laptime fastest(INT32_MAX);
-    position = 1;
-    for (tempCar = race.head; tempCar; tempCar = tempCar->getNext()) {
-        for (Laptime* tempLap = tempCar->getHead(); tempLap; tempLap = tempLap->getNext()) {
-            if (*tempLap < fastest) {
-                fastest = *tempLap;
-                carPositionWithFastestLap = position;
-            }
-        }
-        position++;
-    }
-
+    int fastestLapPosition = race.carPositionWithFastestLap();
 
     position = 1;
     for (tempCar = race.head; tempCar; tempCar = tempCar->getNext()) {
@@ -176,7 +165,7 @@ std::ostream &operator<<(std::ostream &os, const Race &race) {
 
         if (position <= 10)
             os << "--" << points[position-1];
-        if (position == carPositionWithFastestLap) {
+        if (position == fastestLapPosition) {
             os << "--" << 1;
         }
 
@@ -217,4 +206,36 @@ void Race::sortCars() {
         }
         end = current;
     }
+}
+
+std::ostream &Race::raceWinner(std::ostream& os) {
+    std::string name = (head->getName()).substr(0,3); // Get the first 3 letters
+    for (int i = 0; i < 3; i++) { // Capitalize
+        name[i] = toupper(name[i]);
+    }
+    os << name << "--";
+
+    
+}
+
+void Race::setAverageLaptime(int time) {
+    average_laptime.setLaptime(time);
+}
+
+
+// Find the position of the car with fastest lap
+int Race::carPositionWithFastestLap() const {
+    int carPositionWithFastestLap = -1;
+    Laptime fastest(INT32_MAX);
+    int position = 1;
+    for (Car* tempCar = head; tempCar; tempCar = tempCar->getNext()) {
+        for (Laptime* tempLap = tempCar->getHead(); tempLap; tempLap = tempLap->getNext()) {
+            if (*tempLap < fastest) {
+                fastest = *tempLap;
+                carPositionWithFastestLap = position;
+            }
+        }
+        position++;
+    }
+    return carPositionWithFastestLap;
 }

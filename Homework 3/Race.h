@@ -14,12 +14,9 @@ private:
     // DO NOT MODIFY THE UPPER PART
     // ADD OWN PRIVATE METHODS/PROPERTIES BELOW
     int numberOfCarsInRace;
+    int carPositionWithFastestLap() const;
 
 public:
-    static void swapCars(Car* car1, Car* car2);
-    void sortCars();
-
-
     /**
      * Constructor.
      *
@@ -168,6 +165,11 @@ public:
 
     // DO NOT MODIFY THE UPPER PART
     // ADD OWN PUBLIC METHODS/PROPERTIES BELOW
+
+    static void swapCars(Car* car1, Car* car2);
+    void sortCars();
+    void setAverageLaptime(int time);
+    std::ostream &raceWinner(std::ostream& os);
 
 };
 

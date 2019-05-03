@@ -15,6 +15,9 @@ private:
 
     // DO NOT MODIFY THE UPPER PART
     // ADD OWN PRIVATE METHODS/PROPERTIES BELOW
+    
+    bool internal; // Set to true if the car is created within the race.
+    // False by default: car was created and then added to the race.
 
 public:
     std::string getName();
@@ -23,6 +26,8 @@ public:
     void setHead(Laptime *head);
     Laptime *getHead() const;
     void setName(const std::string &driverName);
+    bool isInternal() const;
+    void setInternal(bool status);
 
     unsigned int totalLapTime();
 

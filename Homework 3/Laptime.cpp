@@ -48,6 +48,10 @@ int Laptime::getLaptime() const {
     return laptime;
 }
 
+void Laptime::setLaptime(int laptime) {
+    this->laptime = laptime;
+}
+
 Laptime *Laptime::getNext() const {
     return next;
 }

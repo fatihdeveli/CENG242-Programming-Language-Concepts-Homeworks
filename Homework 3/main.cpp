@@ -58,6 +58,7 @@ int main(void) {
     baku.addCartoRace(ricciardo);
     baku.addCartoRace(raikkonen);
     baku.addCartoRace(giovinazzi);
+    baku.addCartoRace();
 
     cout<<"NUMBER OF CARS"<<endl<<endl;
     cout<<baku.getNumberOfCarsinRace()<<endl;

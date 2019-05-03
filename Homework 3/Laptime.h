@@ -94,6 +94,7 @@ public:
     // ADD OWN PUBLIC METHODS/PROPERTIES BELOW
     int getLaptime() const;
     Laptime *getNext() const;
+    void setLaptime (int time);
 };
 
 

@@ -9,6 +9,7 @@ IN THIS FILE. START YOUR IMPLEMENTATIONS BELOW THIS LINE
 Car::Car(std::string driver_name) {
     performance = Utilizer::generatePerformance();
     this->driver_name = driver_name;
+    internal = false;
     head = nullptr;
     next = nullptr;
 }
@@ -16,6 +17,7 @@ Car::Car(std::string driver_name) {
 Car::Car(const Car& rhs) {
     driver_name = rhs.driver_name;
     performance = rhs.performance;
+    internal = rhs.internal;
 
     if (rhs.head) {
         Laptime const *temp = rhs.head;
@@ -158,5 +160,13 @@ unsigned int Car::totalLapTime() {
         total += i->getLaptime();
     }
     return total;
+}
+
+bool Car::isInternal() const {
+    return internal;
+}
+
+void Car::setInternal(bool status) {
+    internal = status;
 }
 
