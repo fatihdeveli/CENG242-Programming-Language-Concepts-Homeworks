@@ -169,7 +169,6 @@ public:
     static void swapCars(Car* car1, Car* car2);
     void sortCars();
     void setAverageLaptime(int time);
-    std::ostream &raceWinner(std::ostream& os);
 
 };
 

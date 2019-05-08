@@ -120,8 +120,29 @@ void Race::operator++() {
 }
 
 void Race::operator--() {
-    // Delete the last lap of cars, and sort them again.
-    // TODO: sort
+    Car* temp = head;
+
+    while (temp) {
+        Laptime* laptimeHead = temp->getHead();
+        if (laptimeHead == nullptr) return;
+        if (laptimeHead->getNext() == nullptr) {
+            delete laptimeHead;
+            temp->setHead(nullptr);
+        }
+
+        Laptime* prev = laptimeHead;
+        Laptime* current = laptimeHead->getNext();
+
+        while (current->getNext()) {
+            prev = current;
+            current = current->getNext();
+        }
+
+        delete current;
+        prev->addLaptime(nullptr);
+
+        temp = temp->getNext();
+    }
 
 }
 
@@ -206,16 +227,6 @@ void Race::sortCars() {
         }
         end = current;
     }
-}
-
-std::ostream &Race::raceWinner(std::ostream& os) {
-    std::string name = (head->getName()).substr(0,3); // Get the first 3 letters
-    for (int i = 0; i < 3; i++) { // Capitalize
-        name[i] = toupper(name[i]);
-    }
-    os << name << "--";
-
-    
 }
 
 void Race::setAverageLaptime(int time) {

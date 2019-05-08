@@ -10,9 +10,7 @@ Championship::Championship() {
 }
 
 Championship::Championship(const Championship &rhs) {
-    for (Race r : rhs.races) {
-        this->races.push_back(r);
-    }
+    races = rhs.races;
 }
 
 Championship::~Championship() {
@@ -20,13 +18,11 @@ Championship::~Championship() {
 }
 
 void Championship::addNewRace(Race &race) {
-    races.push_back(race);
+
 }
 
 void Championship::addNewRace(std::string race_name) {
-    Race* newRace = new Race(race_name);
-    newRace->setAverageLaptime(Utilizer::generateAverageLaptime()),
-    races.push_back(*newRace);
+
 }
 
 void Championship::removeRace(std::string race_name) {

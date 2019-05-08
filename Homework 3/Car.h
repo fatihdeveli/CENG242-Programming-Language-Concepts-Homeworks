@@ -20,18 +20,6 @@ private:
     // False by default: car was created and then added to the race.
 
 public:
-    std::string getName();
-    void setPerformance(double performance);
-    Car *getNext() const;
-    void setHead(Laptime *head);
-    Laptime *getHead() const;
-    void setName(const std::string &driverName);
-    bool isInternal() const;
-    void setInternal(bool status);
-
-    unsigned int totalLapTime();
-
-
     /**
      * Constructor.
      *
@@ -146,8 +134,16 @@ public:
 
     // DO NOT MODIFY THE UPPER PART
     // ADD OWN PUBLIC METHODS/PROPERTIES BELOW
+    std::string getName();
+    void setName(const std::string &driverName);
+    void setPerformance(double performance);
+    Car *getNext() const;
+    Laptime *getHead() const;
+    void setHead(Laptime *head);
+    bool isInternal() const;
+    void setInternal(bool status);
 
+    unsigned int totalLapTime();
 };
-
 
 #endif //HW3_CAR_H
