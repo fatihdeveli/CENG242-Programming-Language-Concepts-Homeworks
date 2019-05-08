@@ -1,0 +1,16 @@
+Sample IO for Homework 4
+
+There are 3 .cpp files and a Makefile in the src folder. Copy them into the same
+folder as your source codes. You can generate the test binaries using the commands:
+- make testPlayer
+- make testBoard
+- make testGame
+
+testPlayer and testBoard programs will test your Player and Board classes. They
+do not require any input. You can find their outputs on the top level directory
+(testPlayer.out, testBoard.out). For the testGame test you need both Game
+and inputParser classes. It reads input from stdin and writes output to stdout.
+Inputs and corresponding outputs reside on gameInputs and gameOutputs folders.
+For the testPlayer test you may be printing the moveable coordinates in different
+order, it is not an issue. You should be able to compare the results of other tests
+with the diff program.
