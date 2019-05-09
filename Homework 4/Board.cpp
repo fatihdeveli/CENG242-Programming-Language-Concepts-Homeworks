@@ -101,3 +101,7 @@ void Board::printBoardwithClass() {
         std::cout << std::endl;
     }
 }
+
+std::vector<Player*>* Board::getPlayers() {
+    return players;
+}

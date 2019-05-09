@@ -8,7 +8,7 @@ Tank::Tank(uint id,int x, int y, Team team) :
 Player(id, x, y, team) {
     attackDamage = 25;
     healPower = 0;
-    maxHP = 1000;
+    HP = maxHP = 1000;
     priorities = {TO_ENEMY, ATTACK, CHEST};
     if (team == BARBARIANS) {
         abbreviation = "TA";

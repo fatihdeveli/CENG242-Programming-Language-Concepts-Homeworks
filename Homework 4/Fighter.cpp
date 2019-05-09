@@ -7,7 +7,7 @@ IN THIS FILE. START YOUR IMPLEMENTATIONS BELOW THIS LINE
 Fighter::Fighter(uint id, int x, int y, Team team) : Player(id, x, y, team) {
     attackDamage = 200;
     healPower = 0;
-    maxHP = 400;
+    HP = maxHP = 400;
     priorities = {ATTACK, TO_ENEMY, CHEST};
     if (team == BARBARIANS) {
         abbreviation = "FI";

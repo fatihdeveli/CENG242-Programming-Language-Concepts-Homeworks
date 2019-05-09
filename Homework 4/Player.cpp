@@ -49,7 +49,7 @@ void Player::heal(Player *ally) {
 }
 
 void Player::movePlayerToCoordinate(Coordinate c) {
-
+    coordinate = c;
 }
 
 bool Player::isDead() const {

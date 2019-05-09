@@ -7,7 +7,7 @@ IN THIS FILE. START YOUR IMPLEMENTATIONS BELOW THIS LINE
 Priest::Priest(uint id, int x, int y, Team team) : Player(id, x, y, team) {
     attackDamage = 0;
     healPower = 50;
-    maxHP = 150;
+    HP = maxHP = 150;
     priorities = {HEAL, TO_ALLY, CHEST};
     if (team == BARBARIANS) {
         abbreviation = "PR";

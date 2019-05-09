@@ -7,7 +7,7 @@ IN THIS FILE. START YOUR IMPLEMENTATIONS BELOW THIS LINE
 Archer::Archer(uint id, int x, int y, Team team) : Player(id, x, y, team) {
     attackDamage = 50;
     healPower = 0;
-    maxHP = 200;
+    HP = maxHP = 200;
     priorities = {ATTACK};
     if (team == BARBARIANS) {
         abbreviation = "AR";

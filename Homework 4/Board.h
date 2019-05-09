@@ -68,5 +68,7 @@ public:
 	 * __ __ __ __
 	 */
 	void printBoardwithClass();
+
+	std::vector<Player*>* getPlayers();
 };
 #endif

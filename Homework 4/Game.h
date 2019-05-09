@@ -133,6 +133,8 @@ public:
    * @return the goal that the action was taken upon. NO_GOAL if no action was taken.
    */
   Goal playTurnForPlayer(Player* player);
+
+  static void sortPlayers(std::vector<Player*>* players);
 };
 
 #endif

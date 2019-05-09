@@ -7,7 +7,7 @@ IN THIS FILE. START YOUR IMPLEMENTATIONS BELOW THIS LINE
 Scout::Scout(uint id, int x, int y, Team team) : Player(id, x, y, team) {
     attackDamage = 25;
     healPower = 0;
-    maxHP = 125;
+    HP = maxHP = 125;
     priorities = {CHEST, TO_ALLY, ATTACK};
     if (team == BARBARIANS) {
         abbreviation = "SC";
