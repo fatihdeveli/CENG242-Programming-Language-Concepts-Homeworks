@@ -70,5 +70,6 @@ public:
 	void printBoardwithClass();
 
 	std::vector<Player*>* getPlayers();
+	Player* getPlayerOnCoordinate(const Coordinate& c);
 };
 #endif

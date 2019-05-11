@@ -39,13 +39,25 @@ const std::string Tank::getClassAbbreviation() const {
 }
 
 std::vector<Coordinate> Tank::getAttackableCoordinates() {
-    return std::vector<Coordinate>();
+    // Can attack to adjacent up, down, left or right
+    std::vector<Coordinate> attackables;
+    attackables.push_back(coordinate + Coordinate(1, 0));
+    attackables.push_back(coordinate + Coordinate(-1, 0));
+    attackables.push_back(coordinate + Coordinate(0, 1));
+    attackables.push_back(coordinate + Coordinate(0, -1));
+    return attackables;
 }
 
 std::vector<Coordinate> Tank::getMoveableCoordinates() {
-    return std::vector<Coordinate>();
+    // Can move to adjacent up, down, left or right
+    std::vector<Coordinate> movables;
+    movables.push_back(coordinate + Coordinate(1, 0));
+    movables.push_back(coordinate + Coordinate(-1, 0));
+    movables.push_back(coordinate + Coordinate(0, 1));
+    movables.push_back(coordinate + Coordinate(0, -1));
+    return movables;
 }
 
 std::vector<Coordinate> Tank::getHealableCoordinates() {
-    return std::vector<Coordinate>();
+    return std::vector<Coordinate>(); // Tanks cannot heal.
 }

@@ -105,3 +105,11 @@ void Board::printBoardwithClass() {
 std::vector<Player*>* Board::getPlayers() {
     return players;
 }
+
+Player *Board::getPlayerOnCoordinate(const Coordinate &c) {
+    for (Player* p : *players) {
+        if (p->getCoord() == c)
+            return p;
+    }
+    return nullptr;
+}

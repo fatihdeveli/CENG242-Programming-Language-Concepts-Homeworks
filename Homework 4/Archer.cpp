@@ -38,13 +38,23 @@ const std::string Archer::getClassAbbreviation() const {
 }
 
 std::vector<Coordinate> Archer::getAttackableCoordinates() {
-    return std::vector<Coordinate>();
+    // Archers can attack to a range of 2 squares directly up, down, left, or right
+    std::vector<Coordinate> attackables;
+    attackables.push_back(coordinate + Coordinate(1, 0));
+    attackables.push_back(coordinate + Coordinate(2, 0));
+    attackables.push_back(coordinate + Coordinate(-1, 0));
+    attackables.push_back(coordinate + Coordinate(-2, 0));
+    attackables.push_back(coordinate + Coordinate(0, 1));
+    attackables.push_back(coordinate + Coordinate(0, 2));
+    attackables.push_back(coordinate + Coordinate(0, -1));
+    attackables.push_back(coordinate + Coordinate(0, -2));
+    return attackables;
 }
 
 std::vector<Coordinate> Archer::getMoveableCoordinates() {
-    return std::vector<Coordinate>();
+    return std::vector<Coordinate>(); // Archers cannot move
 }
 
 std::vector<Coordinate> Archer::getHealableCoordinates() {
-    return std::vector<Coordinate>();
+    return std::vector<Coordinate>(); // Archers cannot heal
 }

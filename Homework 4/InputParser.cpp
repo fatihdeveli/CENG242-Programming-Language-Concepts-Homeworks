@@ -14,7 +14,7 @@ Game* InputParser::parseGame() {
 	for (int i = 0; i < numPlayers; i++) {
 		int id, x, y;
 		std::string teamStr, cls;
-		std::cin >> cls >> teamStr >> x >> y;
+		std::cin >> id >> cls >> teamStr >> x >> y;
 		Team team = teamStr == "BARBARIANS" ? BARBARIANS : KNIGHTS;
 		game->addPlayer(id, x, y, team, cls);
 	}

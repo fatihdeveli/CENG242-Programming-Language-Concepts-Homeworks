@@ -38,13 +38,33 @@ const std::string Priest::getClassAbbreviation() const {
 }
 
 std::vector<Coordinate> Priest::getAttackableCoordinates() {
-    return std::vector<Coordinate>();
+    return std::vector<Coordinate>(); // Priests cannot attack
 }
 
 std::vector<Coordinate> Priest::getMoveableCoordinates() {
-    return std::vector<Coordinate>();
+    // Can move to all adjacent squares
+    std::vector<Coordinate> movables;
+    movables.push_back(coordinate + Coordinate(-1, -1));
+    movables.push_back(coordinate + Coordinate(-1, 0));
+    movables.push_back(coordinate + Coordinate(-1, 1));
+    movables.push_back(coordinate + Coordinate(0, -1));
+    movables.push_back(coordinate + Coordinate(0, 1));
+    movables.push_back(coordinate + Coordinate(1, -1));
+    movables.push_back(coordinate + Coordinate(1, 0));
+    movables.push_back(coordinate + Coordinate(1, 1));
+    return movables;
 }
 
 std::vector<Coordinate> Priest::getHealableCoordinates() {
-    return std::vector<Coordinate>();
+    // Can heal all adjacent squares
+    std::vector<Coordinate> healables;
+    healables.push_back(coordinate + Coordinate(-1, -1));
+    healables.push_back(coordinate + Coordinate(-1, 0));
+    healables.push_back(coordinate + Coordinate(-1, 1));
+    healables.push_back(coordinate + Coordinate(0, -1));
+    healables.push_back(coordinate + Coordinate(0, 1));
+    healables.push_back(coordinate + Coordinate(1, -1));
+    healables.push_back(coordinate + Coordinate(1, 0));
+    healables.push_back(coordinate + Coordinate(1, 1));
+    return healables;
 }

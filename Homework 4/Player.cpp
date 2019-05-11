@@ -26,7 +26,12 @@ Team Player::getTeam() const {
 }
 
 std::string Player::getBoardID() {
-    return std::__cxx11::string();
+    if (id < 10) {
+        return "0" + std::to_string(id);
+    }
+    else {
+        return std::to_string(id);
+    }
 }
 
 std::vector<Goal> Player::getGoalPriorityList() {
@@ -39,6 +44,8 @@ const std::string Player::getClassAbbreviation() const {
 
 bool Player::attack(Player *enemy) {
     enemy->HP -= attackDamage;
+    std::cout << "Player " << getBoardID() << " attacked Player "
+        << enemy->getBoardID() << " (" << attackDamage << ")" << std::endl;
     return enemy->isDead();
 }
 
@@ -46,9 +53,13 @@ void Player::heal(Player *ally) {
     ally->HP += healPower;
     if (ally->HP > ally->maxHP)
         ally->HP = ally->maxHP;
+    std::cout << "Player " << getBoardID() << " healed Player "
+        << ally->getBoardID() << std::endl;
 }
 
 void Player::movePlayerToCoordinate(Coordinate c) {
+    std::cout << "Player " << getBoardID() << " moved from (" << coordinate.x
+        << "/" << coordinate.y << ") to (" << c.x << "/" << c.y << ")" << std::endl;
     coordinate = c;
 }
 

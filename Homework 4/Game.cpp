@@ -32,7 +32,7 @@ Game::~Game() {
    *
    */
 void Game::addPlayer(int id, int x, int y, Team team, std::string cls) {
-	Player* p;
+	Player* p = nullptr;
 	if (cls == "ARCHER") {
 		p = new Archer(id, x, y, team);
 	}
@@ -74,6 +74,8 @@ bool Game::isGameEnded() {
 	bool aliveBarbarianExists = false;
 	bool aliveKnightExists = false;
 	for (Player *p : players) {
+	    if (p == nullptr)
+	        continue;
 		if (p->getTeam() == BARBARIANS && !p->isDead()) {
 			aliveBarbarianExists = true;
 
@@ -86,10 +88,7 @@ bool Game::isGameEnded() {
 			aliveKnightExists = true;
 		}
 	}
-	if (!aliveBarbarianExists || !aliveKnightExists) {
-		return true;
-	}
-	return false;
+	return !aliveBarbarianExists || !aliveKnightExists;
 }
 
   /**
@@ -104,11 +103,13 @@ bool Game::isGameEnded() {
    */
 void Game::playTurn() {
 	uint lastPlayed = 0; // ID of the last player who played a turn.
-	for (int i = 0; i < players.size(); i++) {
+	for (auto & player : players) {
+	    if (player == nullptr) continue;
 		// Find the smallest id that has not played.
-		Player* nextPlayer;
+		Player* nextPlayer = nullptr;
 		uint smallest = std::numeric_limits<uint>::max();
 		for (Player* p : players) {
+		    if (p == nullptr) continue;
 			uint ID = p->getID();
 			if (ID > lastPlayed && ID < smallest) {
 				smallest = ID;
@@ -173,4 +174,240 @@ void Game::playTurn() {
    *
    * @return the goal that the action was taken upon. NO_GOAL if no action was taken.
    */
-Goal Game::playTurnForPlayer(Player* player) {}
+Goal Game::playTurnForPlayer(Player* player) {
+    if (player->isDead()) {
+        std::cout << "Player " << player->getBoardID() << " is dead." << std::endl;
+        for (auto & i : players) {
+            if (i == player)
+                i = nullptr;
+        }
+        delete player;
+        return NO_GOAL;
+    }
+
+    for (Goal goal : player->getGoalPriorityList()) {
+        if (goal == ATTACK) {
+            // Keep a list of enemies, attack the player with lowest ID
+            std::vector<Player*> enemies;
+
+            for (Coordinate c : player->getAttackableCoordinates()) {
+                if (!board.isCoordinateInBoard(c)) // Coordinate invalid
+                    continue;
+
+                Player* playerOnCoordinate = board.getPlayerOnCoordinate(c);
+                if (playerOnCoordinate == nullptr) // Coordinate is empty
+                    continue;
+                if (playerOnCoordinate->getTeam() == player->getTeam()) // Ally
+                    continue;
+
+                // If above conditions failed, then there is an attackable enemy. Put the
+                // enemy in enemies list to pick the one with smallest id amongst them to attack.
+                enemies.push_back(playerOnCoordinate);
+            }
+
+            // Select the enemy with smallest ID number and attack.
+            Player* enemyToAttack = playerWithSmallestID(enemies);
+
+            if (enemyToAttack) { // Found an enemy to attack
+                player->attack(enemyToAttack);
+                return ATTACK;
+            }
+            else {
+                // If enemyToAttack is null, then there is no suitable enemy to attack.
+                // Continue with other goals in the priority list.
+                continue;
+            }
+        }
+        else if (goal == CHEST) {
+            Coordinate chest = board.getChestCoordinates();
+            int currentDistance = player->getCoord() - chest;
+
+            // Keep the possible coordinates whose distances to chest are shorter than the current.
+            std::vector<Coordinate> possibleCoordinates;
+            for (Coordinate c : player->getMoveableCoordinates()) {
+                if (c - chest < currentDistance) {
+                    // Check if the coordinate is available
+                    if (board.isPlayerOnCoordinate(c))
+                        continue;
+                    else
+                        possibleCoordinates.push_back(c);
+                }
+            }
+
+            // 2 possible coordinates, select the horizontal one
+            if (possibleCoordinates.size() > 1) {
+                if (possibleCoordinates[0].y == player->getCoord().y) { // Horizontal move
+                    player->movePlayerToCoordinate(possibleCoordinates[0]);
+                    return CHEST;
+                }
+                // Else: possibleCoordinates[1] is the horizontal move
+                player->movePlayerToCoordinate(possibleCoordinates[1]);
+                return CHEST;
+            }
+            else if (!possibleCoordinates.empty()) { // Only one possible coordinate
+                player->movePlayerToCoordinate(possibleCoordinates[0]);
+                return CHEST;
+            }
+            // Else: no coordinate is possible
+            continue;
+        }
+
+        else if (goal == TO_ENEMY) {
+            // Find the closest distance
+            int closestDistance = std::numeric_limits<int>::max();
+            for (Player* p : players) {
+                if (p == nullptr) // p is null if player is dead
+                    continue;
+                if (p->getTeam() != player->getTeam()) { // Look for enemies
+                    int distance = p->getCoord() - player->getCoord();
+                    if (distance <= closestDistance) {
+                        closestDistance = distance;
+                    }
+                }
+            }
+
+            // Select the enemies with the closest distance
+            std::vector<Player*> closestEnemies;
+            for (Player* p : players) {
+                if (p == nullptr) // p is null if player is dead
+                    continue;
+                if (p->getTeam() != player->getTeam()) {
+                    int distance = p->getCoord() - player->getCoord();
+                    if (distance == closestDistance) {
+                        closestEnemies.push_back(p);
+                    }
+                }
+            }
+
+            // There might be multiple enemies with the same smallest distance.
+            // In this case, select the enemy with the smallest ID.
+            Player* enemyToMove = playerWithSmallestID(closestEnemies);
+
+            // Find the square to move to.
+            int currentDistance = player->getCoord() - enemyToMove->getCoord();
+            std::vector<Coordinate> possibleCoordinates;
+            for (Coordinate c : player->getMoveableCoordinates()) {
+                if (c - player->getCoord() < currentDistance) {
+                    // Check if the coordinate is available
+                    if (board.isPlayerOnCoordinate(c))
+                        continue;
+                    else
+                        possibleCoordinates.push_back(c);
+                }
+            }
+
+            // Select the coordinate to move to. If there are two possible
+            // movement options, prefer the horizontal move.
+            if (possibleCoordinates.size() > 1) { // 2 possible coordinates, select horizontal
+                if (possibleCoordinates[0].y == player->getCoord().y) { // Horizontal move
+                    player->movePlayerToCoordinate(possibleCoordinates[0]);
+                    return TO_ENEMY;
+                }
+                // Else: possibleCoordinates[1] is the horizontal move
+                player->movePlayerToCoordinate(possibleCoordinates[1]);
+                return TO_ENEMY;
+            }
+            else if (!possibleCoordinates.empty()) { // Only one possible coordinate
+                player->movePlayerToCoordinate(possibleCoordinates[0]);
+                return TO_ENEMY;
+            }
+            // Else: no coordinate is possible
+            continue;
+        }
+
+        else if (goal == TO_ALLY) {
+            // Find the closest distance
+            int closestDistance = std::numeric_limits<int>::max();
+            for (Player* p : players) {
+                if (p == nullptr) // p is null if player is dead
+                    continue;
+                if (p->getTeam() == player->getTeam()) { // Look for allies
+                    int distance = p->getCoord() - player->getCoord();
+                    if (distance <= closestDistance) {
+                        closestDistance = distance;
+                    }
+                }
+            }
+
+            // Select the allies with the closest distance
+            std::vector<Player*> closestAllies;
+            for (Player* p : players) {
+                if (p == nullptr) // p is null if player is dead
+                    continue;
+                if (p->getTeam() == player->getTeam()) {
+                    int distance = p->getCoord() - player->getCoord();
+                    if (distance == closestDistance) {
+                        closestAllies.push_back(p);
+                    }
+                }
+            }
+
+            // There might be multiple enemies with the same smallest distance.
+            // In this case, select the enemy with the smallest ID.
+            Player* allyToMove = playerWithSmallestID(closestAllies);
+
+            // Find the square to move to.
+            int currentDistance = player->getCoord() - allyToMove->getCoord();
+            std::vector<Coordinate> possibleCoordinates;
+            for (Coordinate c : player->getMoveableCoordinates()) {
+                if (c - player->getCoord() < currentDistance) {
+                    // Check if the coordinate is available
+                    if (board.isPlayerOnCoordinate(c))
+                        continue;
+                    else
+                        possibleCoordinates.push_back(c);
+                }
+            }
+
+            // Select the coordinate to move to. If there are two possible
+            // movement options, prefer the horizontal move.
+            if (possibleCoordinates.size() > 1) { // 2 possible coordinates, select horizontal
+                if (possibleCoordinates[0].y == player->getCoord().y) { // Horizontal move
+                    player->movePlayerToCoordinate(possibleCoordinates[0]);
+                    return TO_ALLY;
+                }
+                // Else: possibleCoordinates[1] is the horizontal move
+                player->movePlayerToCoordinate(possibleCoordinates[1]);
+                return TO_ALLY;
+            }
+            else if (!possibleCoordinates.empty()) { // Only one possible coordinate
+                player->movePlayerToCoordinate(possibleCoordinates[0]);
+                return TO_ALLY;
+            }
+            // Else: no coordinate is possible
+            continue;
+        }
+
+        else if (goal == HEAL) {
+            bool healed = false; // Return value will be HEAL if someone is healed.
+            for (Coordinate c : player->getHealableCoordinates()) {
+                Player* p = board.getPlayerOnCoordinate(c);
+                if (p->getTeam() == player->getTeam()) { // Only heal allies
+                    player->heal(p);
+                    healed = true;
+                }
+            }
+            if (healed)
+                return HEAL;
+
+            continue; // Else: Failed to heal anyone, continue with other goals
+        }
+    }
+
+    // If the player failed to achieve any of the goals, return NO_GOAL and do nothing.
+    return NO_GOAL;
+}
+
+Player* Game::playerWithSmallestID(std::vector<Player*>& list) {
+    uint smallestID = std::numeric_limits<uint>::max();
+    Player* returnVal = nullptr;
+    for (Player* p : list) {
+        if (p == nullptr) // p is null if player is dead
+            continue;
+        if (p->getID() < smallestID) {
+            smallestID = p->getID();
+            returnVal = p;
+        }
+    }
+    return returnVal;
+}

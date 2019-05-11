@@ -19,6 +19,14 @@ private:
   //DO NOT MODIFY THE UPPER PART
 	//ADD YOU OWN PROVATE METHODS/PROPERTIES BELOW
 
+
+	/**
+	 * Finds the player with smallest ID in the given list of players
+	 * @param list vector containing Player pointers
+	 * @return Player pointer to the player with the smallest ID.
+	 */
+	static Player* playerWithSmallestID(std::vector<Player*>& list);
+
 public:
   /**
    * Costructor for Game class.
@@ -134,7 +142,6 @@ public:
    */
   Goal playTurnForPlayer(Player* player);
 
-  static void sortPlayers(std::vector<Player*>* players);
 };
 
 #endif
