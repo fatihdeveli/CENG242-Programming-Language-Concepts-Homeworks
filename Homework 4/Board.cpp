@@ -9,8 +9,7 @@ size(_size), players(_players), chest(chest) {
 
 }
 
-Board::~Board() {
-}
+Board::~Board() = default;
 
 bool Board::isCoordinateInBoard(const Coordinate &c) {
     return c.x >= 0 && c.x < size && c.y >= 0 && c.y < size;
@@ -18,6 +17,7 @@ bool Board::isCoordinateInBoard(const Coordinate &c) {
 
 bool Board::isPlayerOnCoordinate(const Coordinate &c) {
     for (Player* p : *players) {
+        if (p == nullptr) continue;
         if (p->getCoord() == c)
             return true;
     }
@@ -26,6 +26,7 @@ bool Board::isPlayerOnCoordinate(const Coordinate &c) {
 
 Player *Board::operator[](const Coordinate &c) {
     for (Player* p : *players) {
+        if (p == nullptr) continue;
         if (p->getCoord() == c) {
             return p;
         }
@@ -47,24 +48,21 @@ void Board::printBoardwithID() {
         }
     }
     for (Player* p : *players) {
+        if (p == nullptr) continue; // Dead players
         grid[p->getCoord().y][p->getCoord().x] = p;
     }
 
     for (int y = 0; y < size; y++) {
         for (int x = 0; x < size; x++) {
-            if (chest == Coordinate(x, y)) {
-                std::cout << "Ch ";
-                continue;
-            }
             Player* p = grid[y][x];
-            if (p == nullptr) {
-                std::cout << "__ ";
+            if (p) {
+                std::cout << p->getBoardID() << " ";
+            }
+            else if (chest == Coordinate(x, y)) {
+                std::cout << "Ch ";
             }
             else {
-                int id = p->getID();
-                if (id < 10)
-                    std::cout << 0;
-                std::cout << id << " ";
+                std::cout << "__ ";
             }
         }
         std::cout << std::endl;
@@ -81,33 +79,34 @@ void Board::printBoardwithClass() {
         }
     }
     for (Player* p : *players) {
+        if (p == nullptr) continue; // Dead players
         grid[p->getCoord().y][p->getCoord().x] = p;
     }
 
     for (int y = 0; y < size; y++) {
         for (int x = 0; x < size; x++) {
-            if (chest == Coordinate(x, y)) {
-                std::cout << "Ch ";
-                continue;
-            }
             Player* p = grid[y][x];
-            if (p == nullptr) {
-                std::cout << "__ ";
+            if (p) {
+                std::cout << p->getClassAbbreviation() << " ";
+            }
+            else if (chest == Coordinate(x, y)) {
+                std::cout << "Ch ";
             }
             else {
-                std::cout << p->getClassAbbreviation() << " ";
+                std::cout << "__ ";
             }
         }
         std::cout << std::endl;
     }
 }
 
-std::vector<Player*>* Board::getPlayers() {
-    return players;
+void Board::setPlayers(std::vector<Player*>* p) {
+    players = p;
 }
 
 Player *Board::getPlayerOnCoordinate(const Coordinate &c) {
     for (Player* p : *players) {
+        if (p == nullptr) continue;
         if (p->getCoord() == c)
             return p;
     }

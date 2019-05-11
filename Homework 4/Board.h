@@ -69,7 +69,13 @@ public:
 	 */
 	void printBoardwithClass();
 
-	std::vector<Player*>* getPlayers();
+	void setPlayers(std::vector<Player*>* players);
+
+	/**
+	 * Return a pointer to the player on given coordinate
+	 * @param c coordinate
+	 * @return pointer to the player on c. nullptr if there is no player on c.
+	 */
 	Player* getPlayerOnCoordinate(const Coordinate& c);
 };
 #endif

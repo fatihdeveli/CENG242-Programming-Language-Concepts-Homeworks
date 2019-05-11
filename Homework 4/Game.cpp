@@ -7,9 +7,10 @@ IN THIS FILE. START YOUR IMPLEMENTATIONS BELOW THIS LINE
 */
 
 Game::Game(uint maxTurnNumber, uint boardSize, Coordinate chest) :
-board(boardSize, new std::vector<Player*>(), chest) {
+board(boardSize, nullptr, chest) {
 	this->maxTurnNumber = maxTurnNumber;
-	players = *board.getPlayers();
+	players = std::vector<Player*>();
+	board.setPlayers(&players);
 	turnNumber = 0;
 }
 
@@ -17,20 +18,9 @@ Game::~Game() {
 	for (Player* p : players) {
 		delete p;
 	}
-	delete &players;
 }
 
-/**
-   * Add a new player to the game. Add a pointer to the new player to the this->players vector.
-   * Do not forget that Game will manage the memory allocated for the players.
-   * @param id ID of the new player.
-   * @param x x coordinate of the new player.
-   * @param y y coordinate of the new player.
-   * @param team team of the new player.
-   * @param cls class of the new player as string, One of "ARCHER", "FIGHTER",
-   * "PRIEST", "SCOUT", "TANK".
-   *
-   */
+
 void Game::addPlayer(int id, int x, int y, Team team, std::string cls) {
 	Player* p = nullptr;
 	if (cls == "ARCHER") {
@@ -51,28 +41,13 @@ void Game::addPlayer(int id, int x, int y, Team team, std::string cls) {
 	players.push_back(p);
 }
 
-  /**
-   * The game ends when either of these happens:
-   * - All barbarians die (knight victory)
-   * - All knights die (barbarian victory)
-   * - A barbarian gets to the square containing the chest (barbarian victory)
-   * - maxTurnNumber of turns played (knight victory)
-   *
-   * If the game ends announce it py printing the reason, turn number and the victor
-   * as in the following examples:
-   *
-   * Game ended at turn 13. All barbarians dead. Knight victory.
-   * Game ended at turn 121. All knights dead. Barbarian victory.
-   * Game ended at turn 52. Chest captured. Barbarian victory.
-   * Game ended at turn 215. Maximum turn number reached. Knight victory.
-   *
-   * @return true if any of the above is satisfied, false otherwise
-   *
-   */
+
 bool Game::isGameEnded() {
 	Coordinate chest = board.getChestCoordinates();
 	bool aliveBarbarianExists = false;
 	bool aliveKnightExists = false;
+	bool chestCaptured = false;
+
 	for (Player *p : players) {
 	    if (p == nullptr)
 	        continue;
@@ -81,30 +56,43 @@ bool Game::isGameEnded() {
 
 			// Check if the barbarian has reached to the chest.
 			if (p->getCoord() == chest && p->getTeam() == BARBARIANS) {
-				return true;
+			    chestCaptured = true;
+				break;
 			}
 		}
 		else if (!p->isDead()) {
 			aliveKnightExists = true;
 		}
 	}
-	return !aliveBarbarianExists || !aliveKnightExists;
+
+	if (!aliveBarbarianExists || !aliveKnightExists || chestCaptured || turnNumber == maxTurnNumber) {
+	    std::cout << "Game ended at turn " << turnNumber << ". ";
+	    if (chestCaptured) {
+	        std::cout << "Chest captured. Barbarian victory.";
+	    }
+	    else if (!aliveBarbarianExists) {
+	        std::cout << "All barbarians dead. Knight victory.";
+	    }
+	    else if (!aliveKnightExists){
+            std::cout << "All knights dead. Barbarian victory.";
+        }
+	    else if (turnNumber == maxTurnNumber) {
+	        std::cout << "Maximum turn number reached.";
+	    }
+	    std::cout << std::endl;
+	    return true;
+	}
+	return false;
 }
 
-  /**
-   * Play a turn for each player.
-   * Actions are taken in the order of ID numbers of players (player with
-   * smaller ID acts first).
-   * At the start of the turn it announces that the turn has started by printing
-   * to stdout. Turn numbers starts with 1.
-   * Ex: "Turn 13 has started."
-   * Call playTurnForPlayer for every player.
-   *
-   */
+
 void Game::playTurn() {
+    std::cout << "Turn " << ++turnNumber << " has started." << std::endl;
 	uint lastPlayed = 0; // ID of the last player who played a turn.
 	for (auto & player : players) {
-	    if (player == nullptr) continue;
+	    if (player == nullptr)
+	        continue;
+
 		// Find the smallest id that has not played.
 		Player* nextPlayer = nullptr;
 		uint smallest = std::numeric_limits<uint>::max();
@@ -116,67 +104,16 @@ void Game::playTurn() {
 				nextPlayer = p;
 			}
 		}
+		lastPlayed = nextPlayer->getID();
 
-		std::cout << "Turn " << ++turnNumber << " has started." << std::endl;
 		playTurnForPlayer(nextPlayer);
-
 	}
 }
-  /**
-   * Play a turn for the player with the given ID.
-   * If the player is dead announce its death by printing the boardID of the player
-   * as in "Player 07 died.". Remove that player from the board and release its resources.
-   *
-   * Each player has a goal list sorted by its priority for that player.
-   * When a player plays a turn it iterates over its goal list and tries to take
-   * an action. Valid actions are attack, move and heal. A player can take only
-   * one action in a turn, and if there is no action it can take it stops and does nothing.
-   * Before moving a player you must check if the coordinate to move is valid.
-   * Meaning that, the coordinate is in the bounds of the board and there are no
-   * players there.
-   *
-   * IMPORTANT NOTE: every usage of the word nearest is referencing smallest the manhattan
-   * distance, which is formulated as (abs(x_1-x_2) + abs(y_1-y_2)). operator-
-   * overloaded in Coordinate.h computes exactly that, so you can use that method to
-   * calculate the distance between two coordinates.
-   *
-   * Below are the explanations for goals:
-   *
-   * ATTACK:
-   *   - If there are any enemies in the attack range of the player attack to it.
-   *     If there are more than 1 enemy in the range attack to the one with
-   *     lowest ID. If there is no one to attack try the next goal.
-   *
-   * CHEST:
-   *   - Move to the direction of the chest, if both vertical and horizontal moves
-   *     are available, pick the horizontal one. If the horizontal move is blocked
-   *     but the vertical move is not, move vertically. If all directions towards
-   *     the chest is blocked try the next goal.
-   *
-   * TO_ENEMY:
-   *   - Move towards the nearest enemy. If there are more than one enemies with the same distance
-   *     move towards the one with the smallest ID. If both vertical and horizontal moves
-   *     are available, pick the horizontal one. If an enemy is in the squares
-   *     that the player can move or every move that brings the player closer to
-   *     the selected enemy is blocked, try the next goal.
-   *
-   * TO_ALLY:
-   *   - Move towards the nearest ally. If there are more than one allies with the same distance
-   *     move towards the one with the smallest ID.  If both vertical and horizontal moves
-   *     are available, pick the horizontal one. If an ally is in the squares
-   *     that the player can move or every move that brings the player closer to
-   *     the selected ally is blocked, try the next goal.
-   *
-   * HEAL:
-   *   - If there are any allies in the healing range heal all of them. if there
-   *     is no one to heal try the next goal.
-   *
-   *
-   * @return the goal that the action was taken upon. NO_GOAL if no action was taken.
-   */
+
+
 Goal Game::playTurnForPlayer(Player* player) {
     if (player->isDead()) {
-        std::cout << "Player " << player->getBoardID() << " is dead." << std::endl;
+        std::cout << "Player " << player->getBoardID() << " has died." << std::endl;
         for (auto & i : players) {
             if (i == player)
                 i = nullptr;
@@ -212,12 +149,12 @@ Goal Game::playTurnForPlayer(Player* player) {
                 player->attack(enemyToAttack);
                 return ATTACK;
             }
-            else {
-                // If enemyToAttack is null, then there is no suitable enemy to attack.
-                // Continue with other goals in the priority list.
-                continue;
-            }
+
+            // Else: enemyToAttack is null, then there is no suitable enemy to attack.
+            // Continue with other goals in the priority list.
+            continue;
         }
+
         else if (goal == CHEST) {
             Coordinate chest = board.getChestCoordinates();
             int currentDistance = player->getCoord() - chest;
@@ -234,22 +171,13 @@ Goal Game::playTurnForPlayer(Player* player) {
                 }
             }
 
-            // 2 possible coordinates, select the horizontal one
-            if (possibleCoordinates.size() > 1) {
-                if (possibleCoordinates[0].y == player->getCoord().y) { // Horizontal move
-                    player->movePlayerToCoordinate(possibleCoordinates[0]);
-                    return CHEST;
-                }
-                // Else: possibleCoordinates[1] is the horizontal move
-                player->movePlayerToCoordinate(possibleCoordinates[1]);
-                return CHEST;
-            }
-            else if (!possibleCoordinates.empty()) { // Only one possible coordinate
-                player->movePlayerToCoordinate(possibleCoordinates[0]);
-                return CHEST;
-            }
-            // Else: no coordinate is possible
-            continue;
+            Coordinate coordinateToMove = findMoveCoordinate(possibleCoordinates,
+                    player->getCoord(), chest);
+            if (coordinateToMove == Coordinate(-1, -1)) // No coordinate is possible
+                continue;
+            // Else: found a valid coordinate
+            player->movePlayerToCoordinate(coordinateToMove);
+            return CHEST;
         }
 
         else if (goal == TO_ENEMY) {
@@ -283,11 +211,11 @@ Goal Game::playTurnForPlayer(Player* player) {
             // In this case, select the enemy with the smallest ID.
             Player* enemyToMove = playerWithSmallestID(closestEnemies);
 
-            // Find the square to move to.
+            // Find the squares that ara closer to the target.
             int currentDistance = player->getCoord() - enemyToMove->getCoord();
             std::vector<Coordinate> possibleCoordinates;
             for (Coordinate c : player->getMoveableCoordinates()) {
-                if (c - player->getCoord() < currentDistance) {
+                if (c - enemyToMove->getCoord() < currentDistance) {
                     // Check if the coordinate is available
                     if (board.isPlayerOnCoordinate(c))
                         continue;
@@ -296,23 +224,14 @@ Goal Game::playTurnForPlayer(Player* player) {
                 }
             }
 
-            // Select the coordinate to move to. If there are two possible
-            // movement options, prefer the horizontal move.
-            if (possibleCoordinates.size() > 1) { // 2 possible coordinates, select horizontal
-                if (possibleCoordinates[0].y == player->getCoord().y) { // Horizontal move
-                    player->movePlayerToCoordinate(possibleCoordinates[0]);
-                    return TO_ENEMY;
-                }
-                // Else: possibleCoordinates[1] is the horizontal move
-                player->movePlayerToCoordinate(possibleCoordinates[1]);
-                return TO_ENEMY;
-            }
-            else if (!possibleCoordinates.empty()) { // Only one possible coordinate
-                player->movePlayerToCoordinate(possibleCoordinates[0]);
-                return TO_ENEMY;
-            }
-            // Else: no coordinate is possible
-            continue;
+            Coordinate coordinateToMove = findMoveCoordinate(possibleCoordinates,
+                    player->getCoord(), enemyToMove->getCoord());
+            if (coordinateToMove == Coordinate(-1, -1)) // No coordinate is possible
+                continue;
+            // Else: found a valid coordinate
+            player->movePlayerToCoordinate(coordinateToMove);
+            return TO_ENEMY;
+
         }
 
         else if (goal == TO_ALLY) {
@@ -320,6 +239,8 @@ Goal Game::playTurnForPlayer(Player* player) {
             int closestDistance = std::numeric_limits<int>::max();
             for (Player* p : players) {
                 if (p == nullptr) // p is null if player is dead
+                    continue;
+                if (p == player) // Skip self
                     continue;
                 if (p->getTeam() == player->getTeam()) { // Look for allies
                     int distance = p->getCoord() - player->getCoord();
@@ -350,7 +271,7 @@ Goal Game::playTurnForPlayer(Player* player) {
             int currentDistance = player->getCoord() - allyToMove->getCoord();
             std::vector<Coordinate> possibleCoordinates;
             for (Coordinate c : player->getMoveableCoordinates()) {
-                if (c - player->getCoord() < currentDistance) {
+                if (c - allyToMove->getCoord() < currentDistance) {
                     // Check if the coordinate is available
                     if (board.isPlayerOnCoordinate(c))
                         continue;
@@ -359,37 +280,26 @@ Goal Game::playTurnForPlayer(Player* player) {
                 }
             }
 
-            // Select the coordinate to move to. If there are two possible
-            // movement options, prefer the horizontal move.
-            if (possibleCoordinates.size() > 1) { // 2 possible coordinates, select horizontal
-                if (possibleCoordinates[0].y == player->getCoord().y) { // Horizontal move
-                    player->movePlayerToCoordinate(possibleCoordinates[0]);
-                    return TO_ALLY;
-                }
-                // Else: possibleCoordinates[1] is the horizontal move
-                player->movePlayerToCoordinate(possibleCoordinates[1]);
-                return TO_ALLY;
-            }
-            else if (!possibleCoordinates.empty()) { // Only one possible coordinate
-                player->movePlayerToCoordinate(possibleCoordinates[0]);
-                return TO_ALLY;
-            }
-            // Else: no coordinate is possible
-            continue;
+            Coordinate coordinateToMove = findMoveCoordinate(possibleCoordinates,
+                    player->getCoord(), allyToMove->getCoord());
+            if (coordinateToMove == Coordinate(-1, -1)) // No coordinate is possible
+                continue;
+            // Else: found a valid coordinate
+            player->movePlayerToCoordinate(coordinateToMove);
+            return TO_ALLY;
         }
 
         else if (goal == HEAL) {
             bool healed = false; // Return value will be HEAL if someone is healed.
             for (Coordinate c : player->getHealableCoordinates()) {
                 Player* p = board.getPlayerOnCoordinate(c);
-                if (p->getTeam() == player->getTeam()) { // Only heal allies
+                if (p != nullptr && p->getTeam() == player->getTeam()) { // Only heal allies
                     player->heal(p);
                     healed = true;
                 }
             }
             if (healed)
                 return HEAL;
-
             continue; // Else: Failed to heal anyone, continue with other goals
         }
     }
@@ -410,4 +320,45 @@ Player* Game::playerWithSmallestID(std::vector<Player*>& list) {
         }
     }
     return returnVal;
+}
+
+Coordinate Game::findMoveCoordinate(std::vector<Coordinate>& possibleCoordinates,
+        Coordinate currentPos, Coordinate target) {
+    // More than 2 possible coordinates (with a diagonal). Find the shortest.
+    if (possibleCoordinates.size() > 2) {
+        Coordinate coordinateToMove(-1,-1);
+        int shortest = std::numeric_limits<int>::max();
+        for (Coordinate c : possibleCoordinates) {
+            if (c - target < shortest) {
+                shortest = c - target;
+                coordinateToMove = c;
+            }
+        }
+        return coordinateToMove;
+    }
+    // 2 possible coordinates: If one of them is vertical and the other is horizontal,
+    // select the horizontal one. If one of them is diagonal, select diagonal.
+    else if (possibleCoordinates.size() == 2) {
+        // If vertical coordinate exists, its distance is shorter.
+        Coordinate c1 = possibleCoordinates[0];
+        Coordinate c2 = possibleCoordinates[1];
+        if (c1 - target != c2 - target) { // Vertical coordinate exists
+            if (c1 - target < c2 - target)
+                return c1;
+            else
+                return c2;
+        }
+        else { // Vertical coordinate does not exist.
+            if (c1.y == currentPos.y) // Horizontal move
+                return c1;
+            else // c2 is the horizontal move
+                return c2;
+        }
+    }
+    else if (!possibleCoordinates.empty()) { // Only one possible coordinate
+        return possibleCoordinates[0];
+    }
+    else {
+        return {-1, -1};
+    }
 }

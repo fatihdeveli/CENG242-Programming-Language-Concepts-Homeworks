@@ -17,6 +17,6 @@ int main(){
     std::cout << "--------------" << std::endl;
     board->printBoardwithID();
 
-
   }
+  delete game;
 }
