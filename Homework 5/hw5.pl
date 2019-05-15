@@ -53,19 +53,6 @@ sublist([], _).
 sublist([X|XS], [X|XSS]) :- sublist(XS, XSS).
 sublist([X|XS], [_|XSS]) :- sublist([X|XS], XSS).
 
-addWithOrder(List, Name) :-
-    List == [],
-    List is [Name].
-addWithOrder(List, Name) :- % Insert to front
-    catomic_number(Name, CNum),
-    List = [H|_],
-    catomic_number(H, ListNum),
-    CNum =< ListNum,
-    append(Name, List, List).
-addWithOrder(List, Name) :- % Recursive call
-    catomic_number(Name, _),
-    List = [_|T],
-    addWithOrder(T, Name).
 
 molecule(CatomList, TotalCNum) :-
     is_list(CatomList),
@@ -73,12 +60,15 @@ molecule(CatomList, TotalCNum) :-
     totalCatomicNumber(CatomList, TotalCNum).
 
 molecule(CatomList, TotalCNum) :-
-    Catoms = [],
-    catom(Name, _, _, Electrons),
-    electron_count(Electrons, Count), % catomic_number
-    addWithOrder(Catoms, Name),
-    write(Count),
-    sublist(SL, Catoms),
+    % Find ordered list of catoms here.
+    findall(As, setof(A, catomic_number(A, _), As), Catoms),
+    flatten(Catoms, CatomsFlat),
+    write(CatomsFlat), nl,
+    sublist(SL, CatomsFlat),
     totalCharge(SL, 0),
     totalCatomicNumber(SL, TotalCNum),
     CatomList = SL.
+
+
+
+
